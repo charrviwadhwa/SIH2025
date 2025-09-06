@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import sessionsRouter from "./routes/sessions.js";
 import attendanceRouter from "./routes/attendance.js";
-
+import qrRoutes from "./routes/qrcode.js"
 dotenv.config();
 const app = express();
 
@@ -11,6 +11,7 @@ app.use(express.json());
 // Routes
 app.use("/sessions", sessionsRouter);
 app.use("/attendance", attendanceRouter);
+app.use("/api/qr", qrRoutes);
 
 // Health check
 app.get("/", (req, res) => res.send("Server is running ✅"));
