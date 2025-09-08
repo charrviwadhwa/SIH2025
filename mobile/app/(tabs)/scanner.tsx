@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, Button, Alert, StyleSheet } from "react-native";
 import { Camera } from "expo-camera";
-import { BarCodeScanner } from "expo-barcode-scanner";
+import { CameraView, BarcodeScanningResult } from "expo-camera";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {CameraView} from "expo-camera"
+import { router } from "expo-router";
 
-export default function ScannerScreen() {
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type ScannerScreenProps = {
+  navigation: NativeStackNavigationProp<any>;
+};
+
+export default function ScannerScreen({ navigation }: ScannerScreenProps) {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
+  const [processing, setProcessing] = useState(false); // Prevent multiple requests
 
   useEffect(() => {
     (async () => {
@@ -39,20 +46,31 @@ export default function ScannerScreen() {
     );
   }
 
-  const handleBarCodeScanned = async ({ data }: { data: string }) => {
+  const handleBarCodeScanned = async (scanningResult: BarcodeScanningResult) => {
+    // Prevent multiple scans
+    if (scanned || processing) {
+      return;
+    }
+
     setScanned(true);
+    setProcessing(true);
     
-    console.log("Scanned QR data:", data); // Debug log
+    // Extract data from scanning result
+    const data = scanningResult.data;
+    console.log("Scanned QR data:", data);
+    console.log("Full scanning result:", scanningResult);
 
     try {
       // Parse the QR code data
       let qrData;
       try {
         qrData = JSON.parse(data);
-        console.log("Parsed QR data:", qrData); // Debug log
+        console.log("Parsed QR data:", qrData);
       } catch (parseError) {
         console.error("QR parsing error:", parseError);
         Alert.alert("❌ Invalid QR Code", "The QR code format is not valid");
+        setProcessing(false);
+        setScanned(false);
         return;
       }
 
@@ -63,6 +81,8 @@ export default function ScannerScreen() {
           "❌ Invalid QR Code", 
           `Missing required fields. Found: ${Object.keys(qrData).join(', ')}`
         );
+        setProcessing(false);
+        setScanned(false);
         return;
       }
 
@@ -70,10 +90,12 @@ export default function ScannerScreen() {
       const stored = await AsyncStorage.getItem("user");
       const user = stored ? JSON.parse(stored) : null;
       
-      console.log("User data:", user); // Debug log
+      console.log("User data:", user);
 
       if (!user || !user.id) {
         Alert.alert("❌ Error", "No user logged in or user ID missing");
+        setProcessing(false);
+        setScanned(false);
         return;
       }
 
@@ -83,6 +105,8 @@ export default function ScannerScreen() {
         const currentTime = new Date();
         if (currentTime > expiryTime) {
           Alert.alert("❌ Session Expired", "This QR code has expired");
+          setProcessing(false);
+          setScanned(false);
           return;
         }
       }
@@ -91,7 +115,7 @@ export default function ScannerScreen() {
         sessionId: qrData.sessionId,
         qrCode: qrData.qrCode,
         studentId: user.id,
-      }); // Debug log
+      });
 
       // Make API request to mark attendance
       const response = await fetch("http://192.168.1.9:5000/attendance/mark", {
@@ -107,20 +131,42 @@ export default function ScannerScreen() {
         }),
       });
 
-      console.log("Response status:", response.status); // Debug log
+      console.log("Response status:", response.status);
 
       const result = await response.json();
-      console.log("Response data:", result); // Debug log
+      console.log("Response data:", result);
 
       if (response.ok) {
-        Alert.alert(
-          "✅ Attendance Marked Successfully!", 
-          `Class: ${qrData.classId}\nTime: ${new Date().toLocaleTimeString()}`
-        );
+        console.log("Attendance marked successfully, navigating to success screen");
+        
+        // Navigate to success screen with attendance data using Expo Router
+        const attendanceData = {
+          course: result.session?.course || 'Unknown Course',
+          sessionId: result.attendance.sessionId,
+          markedAt: result.attendance.markedAt,
+          studentId: user.id,
+          studentEmail: user.email
+        };
+
+        router.push({
+          pathname: '/AttendanceSuccessScreen',
+          params: {
+            attendanceData: JSON.stringify(attendanceData)
+          }
+        });
       } else {
         Alert.alert(
           "❌ Attendance Failed", 
-          result.error || result.message || "Failed to mark attendance"
+          result.error || result.message || "Failed to mark attendance",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                setProcessing(false);
+                setScanned(false);
+              }
+            }
+          ]
         );
       }
 
@@ -128,7 +174,16 @@ export default function ScannerScreen() {
       console.error("Network error:", networkError);
       Alert.alert(
         "❌ Network Error", 
-        "Could not connect to server. Please check your internet connection."
+        "Could not connect to server. Please check your internet connection.",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              setProcessing(false);
+              setScanned(false);
+            }
+          }
+        ]
       );
     }
   };
@@ -148,15 +203,18 @@ export default function ScannerScreen() {
       <View style={styles.overlay}>
         <View style={styles.scanArea} />
         <Text style={styles.instructionText}>
-          Point your camera at the QR code
+          {processing ? "Processing..." : "Point your camera at the QR code"}
         </Text>
       </View>
 
-      {scanned && (
+      {scanned && !processing && (
         <View style={styles.buttonContainer}>
           <Button 
             title="Scan Again" 
-            onPress={() => setScanned(false)}
+            onPress={() => {
+              setScanned(false);
+              setProcessing(false);
+            }}
             color="#007AFF"
           />
         </View>
