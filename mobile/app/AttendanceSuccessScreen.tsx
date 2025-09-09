@@ -139,9 +139,7 @@ export default function BeautifulAttendanceSuccess() {
     router.back();
   };
 
-  const handleViewHistory = () => {
-    router.push('/attendance-history');
-  };
+ 
 
   return (
     <LinearGradient
