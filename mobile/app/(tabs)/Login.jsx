@@ -179,7 +179,7 @@ const handleLogin = async () => {
 
 
         {/* New User Button */}
-        <Pressable onPress={() => router.push("/(tabs)/Dashboard")}>
+        <Pressable onPress={() => router.push("/(tabs)/Name")}>
           <Text style={styles.newUserText}>
             New user? <Text style={styles.linkText}>Get started now!</Text>
           </Text>
