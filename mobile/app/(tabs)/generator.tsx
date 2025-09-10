@@ -11,6 +11,7 @@ import {
   StatusBar,
   ScrollView,
   Platform,
+  Image
 } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -18,6 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import {colors} from "../../utils/colors"
 
 const { width, height } = Dimensions.get('window');
 
@@ -153,377 +155,179 @@ export default function BeautifulSecureGeneratorScreen() {
     return Math.abs(hash).toString(36);
   };
 
-  return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1a1a2e" />
-      
-      {/* Animated Background Gradient */}
-      <LinearGradient
-        colors={['#1a1a2e', '#16213e', '#0f3460']}
-        style={StyleSheet.absoluteFillObject}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      />
+  
+return (
 
-      {/* Floating Background Elements */}
-      <View style={styles.backgroundShapes}>
-        <View style={[styles.shape, styles.shape1]} />
-        <View style={[styles.shape, styles.shape2]} />
-        <View style={[styles.shape, styles.shape3]} />
+  <View style={styles.container}>
+ 
+
+    {/* Header Bar */}
+   {/* Header Bar */}
+<View style={styles.header}>
+  <View style={styles.leftHeader}>
+    <TouchableOpacity onPress={() => router.push("/(tabs)/QR")}>
+      <Ionicons name="arrow-back" size={24} color="#fff" />
+    </TouchableOpacity>
+    <Image
+      source={require("../../assets/images/QRIOUS.png")}
+      style={styles.logo}
+      resizeMode="contain"
+    />
+  </View>
+</View>
+
+
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+
+      {/* Input Card */}
+      <View style={styles.card}>
+        <Text style={styles.inputLabel}>Class Identifier</Text>
+        <TextInput
+          placeholder="Enter Class ID..."
+          placeholderTextColor="#777"
+          style={styles.input}
+          value={classId}
+          onChangeText={setClassId}
+          editable={!loading}
+        />
+
+        <TouchableOpacity 
+          style={[styles.generateBtn, loading && styles.disabledBtn]}
+          onPress={generateSecureQR}
+          disabled={loading}
+        >
+          <Text style={styles.btnText}>
+            {loading ? "Creating Session..." : "Generate QR"}
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      <ScrollView 
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header Section */}
-    
-            <TouchableOpacity 
-        style={styles.backButton}
-        onPress={() => router.push("/teacher_home")}
-      >
-        <BlurView intensity={20} tint="dark" style={styles.backButtonBlur}>
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </BlurView>
-      </TouchableOpacity>
-        <View style={styles.header}>
-          <Text style={styles.title}>🎯 Class QR Generator</Text>
-          <Text style={styles.subtitle}>Generate secure attendance codes</Text>
-        </View>
+      {/* QR Card */}
+      {qrValue && sessionInfo && (
+        <Animated.View 
+          style={[
+            styles.card,
+            { 
+              opacity: fadeAnim,
+              transform: [{ scale: scaleAnim }, { translateY: slideAnim }] 
+            }
+          ]}
+        >
+          <View style={styles.sessionHeader}>
+            <Text style={styles.sessionTitle}>Active Session</Text>
+            <TouchableOpacity onPress={clearQR}>
+              <Ionicons name="close-circle" size={22} color="#e74c3c" />
+            </TouchableOpacity>
+          </View>
 
-        {/* Input Section */}
-        <BlurView intensity={20} tint="dark" style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Class Identifier</Text>
-          <TextInput
-            placeholder="Enter your class ID..."
-            placeholderTextColor="#8892b0"
-            style={styles.input}
-            value={classId}
-            onChangeText={setClassId}
-            editable={!loading}
-            autoCapitalize="characters"
-          />
-          
-          <TouchableOpacity 
-            style={[styles.generateButton, loading && styles.loadingButton]}
-            onPress={generateSecureQR}
-            disabled={loading}
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={loading ? ['#4a5568', '#2d3748'] : ['#667eea', '#764ba2']}
-              style={styles.buttonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            >
-              <Text style={styles.buttonText}>
-                {loading ? "🔄 Creating Session..." : "✨ Generate Secure QR"}
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </BlurView>
-
-        {/* QR Code Display Section */}
-        {qrValue && sessionInfo && (
-          <Animated.View 
-            style={[
-              styles.qrSection,
-              {
-                opacity: fadeAnim,
-                transform: [
-                  { scale: scaleAnim },
-                  { translateY: slideAnim }
-                ]
-              }
-            ]}
-          >
-            <BlurView intensity={30} tint="dark" style={styles.qrContainer}>
-              {/* Session Info */}
-              <View style={styles.sessionHeader}>
-                <Text style={styles.sessionTitle}>🔐 Active Session</Text>
-                <TouchableOpacity onPress={clearQR} style={styles.clearButton}>
-                  <Text style={styles.clearButtonText}>✕</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.sessionInfoContainer}>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Session ID:</Text>
-                  <Text style={styles.infoValue}>#{sessionInfo.id}</Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Class:</Text>
-                  <Text style={styles.infoValue}>{sessionInfo.course}</Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Expires:</Text>
-                  <Text style={styles.infoValue}>
-                    {new Date(sessionInfo.expiresAt).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </Text>
-                </View>
-              </View>
-
-              {/* QR Code */}
-              <View style={styles.qrCodeContainer}>
-                <View style={styles.qrBackground}>
-                  <QRCode 
-                    value={qrValue} 
-                    size={220}
-                    backgroundColor="white"
-                    color="#1a1a2e"
-                    logoSize={30}
-                    logoBackgroundColor="white"
-                  />
-                </View>
-              </View>
-
-              {/* Security Badge */}
-              <View style={styles.securityBadge}>
-                <Text style={styles.securityText}>🛡️ Server Verified</Text>
-                <Text style={styles.securitySubtext}>Secure • Encrypted • Time-limited</Text>
-              </View>
-            </BlurView>
-          </Animated.View>
-        )}
-
-        {/* Instructions */}
-        {!qrValue && (
-          <View style={styles.instructions}>
-            <Text style={styles.instructionTitle}>How it works:</Text>
-            <Text style={styles.instructionText}>
-              • Enter your class identifier{'\n'}
-              • Generate a secure, time-limited QR code{'\n'}
-              • Students scan to mark attendance{'\n'}
-              • Sessions expire automatically after 2 hours
+          <View style={styles.sessionInfo}>
+            <Text style={styles.infoText}>Class: {sessionInfo.course}</Text>
+            <Text style={styles.infoText}>
+              Expires: {new Date(sessionInfo.expiresAt).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"})}
             </Text>
           </View>
-        )}
-      </ScrollView>
-    </View>
-  );
+
+          <View style={styles.qrBox}>
+            <QRCode 
+              value={qrValue}
+              size={200}
+              backgroundColor="white"
+              color="#002147"
+            />
+          </View>
+          <Text style={styles.securityNote}>🛡️ Secure • Verified • Time-limited</Text>
+        </Animated.View>
+      )}
+    </ScrollView>
+  </View>
+);
+
+  
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1a1a2e',
-  },
-  backgroundShapes: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-  },
-  shape: {
-    position: 'absolute',
-    borderRadius: 100,
-    opacity: 0.1,
-  },
-  shape1: {
-    width: 200,
-    height: 200,
-    backgroundColor: '#667eea',
-    top: 100,
-    left: -50,
-  },
-  shape2: {
-    width: 150,
-    height: 150,
-    backgroundColor: '#764ba2',
-    top: 300,
-    right: -30,
-  },
-  shape3: {
-    width: 100,
-    height: 100,
-    backgroundColor: '#f093fb',
-    bottom: 200,
-    left: 50,
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: 40,
-  },
+  container: { flex: 1, backgroundColor: "#f5f6fa" },
   header: {
-    alignItems: 'center',
-    marginBottom: 40,
+    height: 120,
+    backgroundColor: colors.secondary, 
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",  
+    paddingHorizontal: 15,
+    paddingTop: 40,        
+    ...Platform.select({
+      ios: { shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 4 },
+      android: { elevation: 4 },
+    }),
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    textAlign: 'center',
-    marginBottom: 8,
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: colors.white,
+    
   },
-  backButtonBlur: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
+
+  scrollContainer: { padding: 16, paddingBottom: 40 },
+
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 16,
+    elevation: 3,
   },
-  backButton: {
-    marginRight: 15,
-    borderRadius: 25,
-    overflow: 'hidden',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#8892b0',
-    textAlign: 'center',
-  },
-  inputContainer: {
-    borderRadius: 20,
-    padding: 25,
-    marginBottom: 30,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  inputLabel: {
-    fontSize: 16,
-    color: '#ffffff',
-    marginBottom: 10,
-    fontWeight: '600',
-  },
+
+  inputLabel: { fontSize: 16, fontWeight: "600", color: "#002147", marginBottom: 8 },
   input: {
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    padding: 18,
-    borderRadius: 12,
-    fontSize: 16,
-    color: '#ffffff',
-    marginBottom: 20,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 15,
+    marginBottom: 14,
+    backgroundColor: "#fafafa",
   },
-  generateButton: {
-    borderRadius: 12,
-    overflow: 'hidden',
-    elevation: 5,
-    shadowColor: '#667eea',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  loadingButton: {
-    elevation: 2,
-    shadowOpacity: 0.1,
-  },
-  buttonGradient: {
-    paddingVertical: 18,
-    paddingHorizontal: 30,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  qrSection: {
-    marginBottom: 30,
-  },
-  qrContainer: {
-    borderRadius: 20,
-    padding: 25,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  sessionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  sessionTitle: {
-    fontSize: 18,
-    color: '#ffffff',
-    fontWeight: 'bold',
-  },
-  clearButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  clearButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  sessionInfoContainer: {
-    marginBottom: 25,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
-  },
-  infoLabel: {
-    fontSize: 14,
-    color: '#8892b0',
-  },
-  infoValue: {
-    fontSize: 14,
-    color: '#ffffff',
-    fontWeight: '600',
-  },
-  qrCodeContainer: {
-    alignItems: 'center',
-    marginBottom: 25,
-  },
-  qrBackground: {
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 20,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  securityBadge: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(102, 126, 234, 0.2)',
+
+  generateBtn: {
+    backgroundColor: "#1e90ff",
+    borderRadius: 8,
     paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(102, 126, 234, 0.3)',
+    alignItems: "center",
   },
-  securityText: {
-    color: '#667eea',
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 4,
+  disabledBtn: { backgroundColor: "#87cefa" },
+  btnText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+
+  sessionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  sessionTitle: { fontSize: 16, fontWeight: "bold", color: "#002147" },
+  sessionInfo: { marginVertical: 10 },
+  infoText: { fontSize: 14, color: "#444", marginBottom: 4 },
+
+  qrBox: { alignItems: "center", marginVertical: 14 },
+  securityNote: { textAlign: "center", fontSize: 12, color: "#666" },
+    notificationWrapper: {
+    position: "relative",
   },
-  securitySubtext: {
-    color: '#8892b0',
-    fontSize: 12,
+  notificationBadge: {
+    position: "absolute",
+    right: -6,
+    top: -4,
+    backgroundColor: "red",
+    borderRadius: 10,
+    width: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  instructions: {
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  instructionTitle: {
-    fontSize: 18,
-    color: '#ffffff',
-    fontWeight: 'bold',
-    marginBottom: 15,
-  },
-  instructionText: {
-    fontSize: 14,
-    color: '#8892b0',
-    lineHeight: 22,
-    textAlign: 'center',
-  },
+  leftHeader: {
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 10, // space between arrow and logo (works RN 0.71+)
+},
+logo: {
+  height: 150,  // smaller to fit header
+  width: 150,
+  marginLeft: 8,
+},
+
+
 });

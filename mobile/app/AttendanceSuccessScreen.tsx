@@ -317,15 +317,7 @@ export default function BeautifulAttendanceSuccess() {
           </TouchableOpacity>
 
           <View style={styles.secondaryButtons}>
-            <TouchableOpacity 
-              style={styles.secondaryButton} 
-              onPress={handleViewHistory}
-            >
-              <BlurView intensity={20} tint="dark" style={styles.secondaryButtonBlur}>
-                <Ionicons name="list-outline" size={18} color="#667eea" />
-                <Text style={styles.secondaryButtonText}>History</Text>
-              </BlurView>
-            </TouchableOpacity>
+         
 
             <TouchableOpacity 
               style={styles.secondaryButton} 

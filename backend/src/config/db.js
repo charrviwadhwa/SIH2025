@@ -1,8 +1,11 @@
-import {drizzle} from "drizzle-orm/neon-http"
-import {neon} from "@neondatabase/serverless"
-import "dotenv/config"
-import * as schema from "../db/schema.js"
+// db.js
+import { Pool } from "pg";
+import "dotenv/config";
 
-
-const sql= neon(process.env.DATABASE_URL)
- export const db = drizzle(sql,{schema})
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // if using Neon or some hosted DB
+  },
+});
+export default pool;

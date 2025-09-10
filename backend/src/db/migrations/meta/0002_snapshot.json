@@ -1,0 +1,646 @@
+{
+  "id": "e13a1469-98d5-4e02-a084-db6a4dab3636",
+  "prevId": "bafc34bd-907d-4cb6-9146-aa99dd21c955",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.attendance": {
+      "name": "attendance",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "session_id": {
+          "name": "session_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "student_id": {
+          "name": "student_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'present'"
+        },
+        "marked_at": {
+          "name": "marked_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "location": {
+          "name": "location",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "device_info": {
+          "name": "device_info",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "attendance_session_id_sessions_id_fk": {
+          "name": "attendance_session_id_sessions_id_fk",
+          "tableFrom": "attendance",
+          "tableTo": "sessions",
+          "columnsFrom": [
+            "session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "attendance_student_id_users_id_fk": {
+          "name": "attendance_student_id_users_id_fk",
+          "tableFrom": "attendance",
+          "tableTo": "users",
+          "columnsFrom": [
+            "student_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.attendance_summary": {
+      "name": "attendance_summary",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "student_id": {
+          "name": "student_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "course_id": {
+          "name": "course_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "total_sessions": {
+          "name": "total_sessions",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "attended_sessions": {
+          "name": "attended_sessions",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "attendance_percentage": {
+          "name": "attendance_percentage",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "last_updated": {
+          "name": "last_updated",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "attendance_summary_student_id_users_id_fk": {
+          "name": "attendance_summary_student_id_users_id_fk",
+          "tableFrom": "attendance_summary",
+          "tableTo": "users",
+          "columnsFrom": [
+            "student_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "attendance_summary_course_id_courses_id_fk": {
+          "name": "attendance_summary_course_id_courses_id_fk",
+          "tableFrom": "attendance_summary",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.colleges": {
+      "name": "colleges",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "code": {
+          "name": "code",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "colleges_code_unique": {
+          "name": "colleges_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "code"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.courses": {
+      "name": "courses",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(150)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "code": {
+          "name": "code",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "college_id": {
+          "name": "college_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "teacher_id": {
+          "name": "teacher_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "department": {
+          "name": "department",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "semester": {
+          "name": "semester",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year": {
+          "name": "year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "credits": {
+          "name": "credits",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 3
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "courses_college_id_colleges_id_fk": {
+          "name": "courses_college_id_colleges_id_fk",
+          "tableFrom": "courses",
+          "tableTo": "colleges",
+          "columnsFrom": [
+            "college_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "courses_teacher_id_users_id_fk": {
+          "name": "courses_teacher_id_users_id_fk",
+          "tableFrom": "courses",
+          "tableTo": "users",
+          "columnsFrom": [
+            "teacher_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.enrollments": {
+      "name": "enrollments",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "student_id": {
+          "name": "student_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "course_id": {
+          "name": "course_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "enrolled_at": {
+          "name": "enrolled_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "enrollments_student_id_users_id_fk": {
+          "name": "enrollments_student_id_users_id_fk",
+          "tableFrom": "enrollments",
+          "tableTo": "users",
+          "columnsFrom": [
+            "student_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "enrollments_course_id_courses_id_fk": {
+          "name": "enrollments_course_id_courses_id_fk",
+          "tableFrom": "enrollments",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.sessions": {
+      "name": "sessions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "course_id": {
+          "name": "course_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "teacher_id": {
+          "name": "teacher_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "qr_code": {
+          "name": "qr_code",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "latitude": {
+          "name": "latitude",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "longitude": {
+          "name": "longitude",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "radius": {
+          "name": "radius",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 50
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "sessions_course_id_courses_id_fk": {
+          "name": "sessions_course_id_courses_id_fk",
+          "tableFrom": "sessions",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "sessions_teacher_id_users_id_fk": {
+          "name": "sessions_teacher_id_users_id_fk",
+          "tableFrom": "sessions",
+          "tableTo": "users",
+          "columnsFrom": [
+            "teacher_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "sessions_qr_code_unique": {
+          "name": "sessions_qr_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "qr_code"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(150)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password": {
+          "name": "password",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "college_id": {
+          "name": "college_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "degree": {
+          "name": "degree",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "department": {
+          "name": "department",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "year": {
+          "name": "year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "roll_number": {
+          "name": "roll_number",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "employee_id": {
+          "name": "employee_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "users_college_id_colleges_id_fk": {
+          "name": "users_college_id_colleges_id_fk",
+          "tableFrom": "users",
+          "tableTo": "colleges",
+          "columnsFrom": [
+            "college_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "users_email_unique": {
+          "name": "users_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

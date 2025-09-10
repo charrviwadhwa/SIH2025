@@ -15,5 +15,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-  ]
+, "app/(tabs)/Dashboard.jsx", "app/(tabs)/HomeScreen.tsx", "app/(tabs)/Settings.jsx", "app/(tabs)/QR.jsx"  ]
 }
