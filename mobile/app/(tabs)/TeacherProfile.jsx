@@ -1,5 +1,5 @@
 // ProfileScreen.js
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -10,128 +10,33 @@ import {
   Image,
   FlatList,
   Modal,
-  ActivityIndicator,
-  Alert,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { colors } from "../../utils/colors";
 import BottomNav from "./BottomNav";
 
 const ProfileScreen = () => {
   const [isProfile, setIsProfile] = useState(true);
   const [editProfile, setEditProfile] = useState(false);
-  const [subjects, setSubjects] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [subjects, setSubjects] = useState([
+    { id: "1", class: "CSE-1", subject: "OS", code: "CS301" },
+    { id: "2", class: "IT-2", subject: "DBMS", code: "IT202" },
+  ]);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [newSubject, setNewSubject] = useState({ class: "", subject: "", code: "" });
   const [duplicateError, setDuplicateError] = useState(false);
 
   const [profile, setProfile] = useState({
-    name: "",
-    email: "",
-    identity: "",
-    college: "",
-    department: "",
-    mobile: "",
+    name: "John Doe",
+    email: "johndoe@gmail.com",
+    identity: "MSIT2025",
+    college: "MSIT",
+    department: "CSE",
+    mobile: "+91-123456789",
   });
 
-  // Fetch user info from backend
-  const fetchProfile = async () => {
-    try {
-      const email = await AsyncStorage.getItem("userEmail");
-      const role = await AsyncStorage.getItem("userRole");
-
-      if (!email || !role) {
-        Alert.alert("Error", "User info missing. Please login again.");
-        return;
-      }
-
-      const res = await fetch(`http://192.168.1.9:5000/auth/user?email=${email}&role=${role}`);
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.log("Fetch profile error:", data.error);
-        Alert.alert("Error", data.error || "Failed to fetch profile");
-        return;
-      }
-
-      setProfile({
-        name: data.user.name || "",
-        email: data.user.email || "",
-        identity: data.user.identity || "",
-        college: data.user.college || "",
-        department: data.user.department || "",
-        mobile: data.user.mobile || "",
-      });
-
-      if (role === "teacher" && data.user.subjects) {
-        setSubjects(data.user.subjects);
-      }
-
-      setLoading(false);
-    } catch (err) {
-      console.error("Fetch profile error:", err);
-      Alert.alert("Error", "Could not fetch profile");
-      setLoading(false);
-    }
-  };
-
-useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      const email = await AsyncStorage.getItem("userEmail");
-      const role = await AsyncStorage.getItem("userRole");
-
-      if (!email || !role) return;
-
-      const res = await fetch(`http://192.168.1.9:5000/auth/user?email=${email}&role=${role}`);
-      const data = await res.json();
-
-      if (!res.ok) return;
-
-      // Update profile info
-      setProfile({
-        name: data.user.name || "",
-        email: data.user.email || "",
-        identity: data.user.identity || "",
-        college: data.user.college || "",
-        department: data.user.department || "",
-        mobile: data.user.mobile || "",
-      });
-
-      // Use sample subjects if none exist
-      if (role === "teacher") {
-        setSubjects(data.user.subjects && data.user.subjects.length
-          ? data.user.subjects
-          : [
-              { id: "1", class: "CSE-1", subject: "Operating Systems", code: "CS301" },
-              { id: "2", class: "CSE-2", subject: "Database Management", code: "CS302" },
-              { id: "3", class: "CSE-3", subject: "Data Structures", code: "CS303" },
-            ]
-        );
-      } else if (role === "student") {
-        setSubjects(data.user.subjects && data.user.subjects.length
-          ? data.user.subjects
-          : [
-              { id: "1", class: "CSE-1", subject: "Maths", code: "MA101" },
-              { id: "2", class: "CSE-1", subject: "Physics", code: "PH101" },
-            ]
-        );
-      }
-
-    } catch (err) {
-      console.error("Fetch profile error:", err);
-    }
-  };
-
-  fetchProfile();
-}, []);
-
-
   const handleSaveProfile = () => {
-    // Optionally: send updated profile to backend
     setEditProfile(false);
   };
 
@@ -170,14 +75,6 @@ useEffect(() => {
     </View>
   );
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 50 }} />
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
       {/* Toggle */}
@@ -211,7 +108,10 @@ useEffect(() => {
 
           {Object.keys(profile).map((key) => (
             <View
-              style={[styles.inputWrapper, !editProfile && { backgroundColor: "#f5f5f5" }]}
+              style={[
+                styles.inputWrapper,
+                !editProfile && { backgroundColor: "#f5f5f5" },
+              ]}
               key={key}
             >
               <Ionicons
@@ -263,10 +163,13 @@ useEffect(() => {
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.tilesGrid}
           />
+
+          {/* Add Subject Modal Trigger */}
           <Pressable style={styles.addButton} onPress={() => setModalVisible(true)}>
             <Ionicons name="add-circle-outline" size={50} color={colors.primary} />
           </Pressable>
 
+          {/* Modal */}
           <Modal
             animationType="slide"
             transparent={true}
@@ -279,7 +182,7 @@ useEffect(() => {
                 {duplicateError && (
                   <Text style={styles.duplicateText}>Subject or Code Already Exists!</Text>
                 )}
-                {/* Input Fields */}
+
                 <View style={styles.inputWrapper}>
                   <Ionicons name="school-outline" size={20} color={colors.primary} style={styles.icon} />
                   <TextInput
@@ -289,6 +192,7 @@ useEffect(() => {
                     onChangeText={(text) => setNewSubject({ ...newSubject, class: text })}
                   />
                 </View>
+
                 <View style={styles.inputWrapper}>
                   <Ionicons name="book-outline" size={20} color={colors.primary} style={styles.icon} />
                   <TextInput
@@ -298,6 +202,7 @@ useEffect(() => {
                     onChangeText={(text) => setNewSubject({ ...newSubject, subject: text })}
                   />
                 </View>
+
                 <View style={styles.inputWrapper}>
                   <Ionicons name="code-slash-outline" size={20} color={colors.primary} style={styles.icon} />
                   <TextInput
@@ -307,6 +212,8 @@ useEffect(() => {
                     onChangeText={(text) => setNewSubject({ ...newSubject, code: text })}
                   />
                 </View>
+
+                {/* Buttons row */}
                 <View style={styles.modalButtonsRow}>
                   <Pressable style={[styles.modalBtn, { backgroundColor: colors.primary }]} onPress={addSubject}>
                     <Text style={styles.modalBtnText}>Add</Text>
@@ -320,46 +227,129 @@ useEffect(() => {
           </Modal>
         </View>
       )}
-      <View style={styles.bottomPadding} />
+         {/* Add bottom padding to account for navbar */}
+        <View style={styles.bottomPadding} />
+
+      {/* Fixed Bottom Navbar */}
       <View style={styles.navbarContainer}>
-        <BottomNav />
+        <BottomNav/>
       </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", paddingTop: 20 },
+  container: { flex: 1, backgroundColor: "#fff", paddingTop:30 },
   toggleRow: { flexDirection: "row", justifyContent: "center", margin: 10 },
   toggleBtn: { flex: 1, padding: 12, alignItems: "center" },
   toggleText: { fontSize: 16, color: "gray" },
   activeTab: { borderBottomWidth: 2, borderBottomColor: colors.primary },
   activeText: { color: colors.primary, fontWeight: "bold" },
+
   profileForm: { alignItems: "center", marginTop: 20 },
   avatarWrapper: { position: "relative" },
   profileAvatar: { width: 100, height: 100, borderRadius: 50, marginBottom: 20 },
-  editAvatar: { position: "absolute", bottom: 0, right: 0, backgroundColor: colors.primary, padding: 6, borderRadius: 20, borderWidth: 2, borderColor: "#fff" },
-  inputWrapper: { flexDirection: "row", alignItems: "center", marginVertical: 8, borderWidth: 1, borderColor: "#ddd", borderRadius: 12, backgroundColor: "#fff", width: "90%", paddingHorizontal: 8 },
+  editAvatar: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: colors.primary,
+    padding: 6,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    width: "90%",
+    paddingHorizontal: 8,
+  },
   icon: { paddingHorizontal: 6 },
   inputWithIcon: { flex: 1, paddingVertical: 10, paddingHorizontal: 8 },
-  saveBtn: { backgroundColor: colors.primary, padding: 12, borderRadius: 10, marginTop: 15, width: "90%", alignItems: "center" },
+
+  saveBtn: {
+    backgroundColor: colors.primary,
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 15,
+    width: "90%",
+    alignItems: "center",
+  },
   saveText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+
   subjectsContainer: { flex: 1, padding: 10 },
   tilesGrid: { paddingBottom: 20 },
-  tile: { flex: 1, margin: 8, backgroundColor: "#f9f9f9", borderRadius: 15, padding: 14, elevation: 3, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 4 },
+  tile: {
+    flex: 1,
+    margin: 8,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 15,
+    padding: 14,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
   classText: { fontSize: 16, fontWeight: "bold" },
   subjectText: { fontSize: 14, color: "#333" },
   codeText: { fontSize: 12, fontStyle: "italic", color: "gray" },
+
   addButton: { alignSelf: "center", marginVertical: 15 },
-  modalBackground: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
-  modalContainer: { width: "85%", backgroundColor: "#fff", borderRadius: 20, padding: 20, elevation: 10, alignItems: "center" },
+
+  modalBackground: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    width: "85%",
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 20,
+    elevation: 10,
+    alignItems: "center",
+  },
   modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 15, color: colors.primary },
   duplicateText: { color: "red", fontWeight: "bold", marginBottom: 10, textAlign: "center" },
-  modalButtonsRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 15, width: "100%" },
-  modalBtn: { flex: 1, padding: 12, borderRadius: 10, alignItems: "center", marginHorizontal: 5 },
+
+  modalButtonsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 15,
+    width: "100%",
+  },
+  modalBtn: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    marginHorizontal: 5,
+  },
   modalBtnText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
-  bottomPadding: { height: 80 },
-  navbarContainer: { position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: "#fff", borderTopWidth: 1, borderTopColor: "#eee", paddingBottom: 20 },
+    bottomPadding: {
+    height: 80,
+    
+// Adjust based on your navbar height
+  },
+  navbarContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    paddingBottom:20 
+   
+  },
 });
 
 export default ProfileScreen;
