@@ -52,7 +52,7 @@ const TeacherCollege = () => {
       }
 
       Alert.alert("✅ Success", "College saved successfully");
-      router.push("/(tabs)/Dashboard");
+      router.push("/(tabs)/QR");
     } catch (err) {
       console.error("College save error:", err);
       Alert.alert("❌ Error", "Failed to connect to server");

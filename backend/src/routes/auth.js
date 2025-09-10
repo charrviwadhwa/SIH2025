@@ -6,9 +6,9 @@ const router = express.Router();
 
 // -------------------- REGISTER --------------------
 // REGISTER
+// In your auth.js backend - update the registration endpoint
 router.post("/register", async (req, res) => {
   const { email, password, role, name } = req.body;
-
 
   if (!email || !password || !role || !name) {
     return res.status(400).json({ error: "Missing fields" });
@@ -16,22 +16,32 @@ router.post("/register", async (req, res) => {
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
+    let newUser;
 
     if (role === "student") {
-      await pool.query(
-        "INSERT INTO students (email, password, name) VALUES ($1, $2, $3) ON CONFLICT (email) DO NOTHING",
+      const result = await pool.query(
+        "INSERT INTO students (email, password, name) VALUES ($1, $2, $3) ON CONFLICT (email) DO NOTHING RETURNING *",
         [email, hashedPassword, name]
       );
+      newUser = result.rows[0];
     } else if (role === "teacher") {
-      await pool.query(
-        "INSERT INTO teachers (email, password, name) VALUES ($1, $2, $3) ON CONFLICT (email) DO NOTHING",
+      const result = await pool.query(
+        "INSERT INTO teachers (email, password, name) VALUES ($1, $2, $3) ON CONFLICT (email) DO NOTHING RETURNING *",
         [email, hashedPassword, name]
       );
+      newUser = result.rows[0];
     } else {
       return res.status(400).json({ error: "Invalid role" });
     }
 
-    res.json({ success: true, message: "User registered", role });
+    if (!newUser) {
+      return res.status(400).json({ error: "User already exists" });
+    }
+
+    // ✅ Return the complete user data (without password)
+    const { password: _, ...userData } = newUser;
+    res.json({ success: true, message: "User registered", role, user: userData });
+
   } catch (err) {
     console.error("Register error:", err);
     res.status(500).json({ error: "Registration failed" });
@@ -158,6 +168,34 @@ router.patch("/teacher/college", async (req, res) => {
   } catch (err) {
     console.error("College update error:", err);
     res.status(500).json({ error: "Failed to update college" });
+  }
+});
+
+router.get("/user", async (req, res) => {
+  const { email, role } = req.query;
+  if (!email || !role) return res.status(400).json({ error: "Missing fields" });
+
+  try {
+    const roleLower = role.toLowerCase();
+    let user;
+
+    if (roleLower === "student") {
+      const result = await pool.query("SELECT * FROM students WHERE email=$1", [email]);
+      user = result.rows[0];
+    } else if (roleLower === "teacher") {
+      const result = await pool.query("SELECT * FROM teachers WHERE email=$1", [email]);
+      user = result.rows[0];
+    } else {
+      return res.status(400).json({ error: "Invalid role" });
+    }
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const { password: _, ...userData } = user;
+    res.json({ success: true, role: roleLower, user: userData });
+  } catch (err) {
+    console.error("Fetch user error:", err);
+    res.status(500).json({ error: "Failed to fetch user" });
   }
 });
 

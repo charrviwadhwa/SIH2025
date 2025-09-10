@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
   fab: {
     position: "absolute",
     right: 20,
-    bottom: 80,
+    bottom: 100,
     backgroundColor: colors.primary,
     width: 60,
     height: 60,

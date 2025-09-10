@@ -10,12 +10,11 @@ import {
   Alert,
   Modal,
   ScrollView,
-  Platform
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import { colors } from "../../utils/colors"; // Qrious palette
-import BottomNav from "./BottomNav";
+import Navbar from "../(tabs)/Studentnavbar"
 import { router } from "expo-router";
 
 const SettingsScreen = () => {
@@ -157,7 +156,7 @@ const SettingsScreen = () => {
 
       {/* Fixed Bottom Navbar */}
       <View style={styles.navbarContainer}>
-        <BottomNav/>
+        <Navbar/>
       </View>
 
       {/* Rating Dialog */}
@@ -322,19 +321,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 12,
     alignItems: "center",
-  },
-    bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    backgroundColor: colors.white,
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
-    ...Platform.select({
-      ios: { shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 4 },
-      android: { elevation: 4 },
-    }),
   },
   cancelText: {
     color: "#555",

@@ -38,7 +38,8 @@ const Login = () => {
     outputRange: ['0%', '100%'],
   });
 
-  const handleLogin = async () => {
+// Add this debugging version to your login handler
+const handleLogin = async () => {
   if (!email || !password) {
     Alert.alert("Error", "Please enter email and password");
     return;
@@ -58,15 +59,25 @@ const Login = () => {
       return;
     }
 
-    // Save email and role locally
+    console.log("Login response data:", data);
+    console.log("User object from server:", data.user);
+
+    // ✅ SAVE THE COMPLETE USER OBJECT - This line was missing!
+    await AsyncStorage.setItem("user", JSON.stringify(data.user));
+    
+    // Save other data
     await AsyncStorage.setItem("userEmail", email);
     await AsyncStorage.setItem("userRole", role);
 
+    // ✅ Verify it was saved correctly
+    const savedUser = await AsyncStorage.getItem("user");
+    console.log("Verification - saved user:", savedUser);
+
     // Navigate to dashboard based on role
     if (role === "student") {
-      router.push("/(tabs)/Student");
+      router.push("/(tabs)/myAttendance");
     } else {
-      router.push("/(tabs)/Dashboard");
+      router.push("/(tabs)/QR");
     }
 
   } catch (err) {

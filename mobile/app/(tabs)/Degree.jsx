@@ -58,7 +58,7 @@ const DegreeBranchCollegeScreen = () => {
       }
 
       Alert.alert("✅ Success", "Details saved successfully");
-      router.push("/(tabs)/Dashboard"); // student dashboard
+      router.push("/(tabs)/myAttendance"); // student dashboard
     } catch (err) {
       console.error("Degree save error:", err);
       Alert.alert("❌ Error", "Could not connect to server");

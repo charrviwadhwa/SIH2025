@@ -34,99 +34,133 @@ export default function BeautifulSecureGeneratorScreen() {
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
 
-  const generateSecureQR = async () => {
-    if (!classId.trim()) {
-      Alert.alert("⚠️ Missing Information", "Please enter a Class ID to continue");
+  // Add this to the beginning of your generateSecureQR function
+const generateSecureQR = async () => {
+  if (!classId.trim()) {
+    Alert.alert("⚠️ Missing Information", "Please enter a Class ID to continue");
+    return;
+  }
+
+  setLoading(true);
+  
+  // Start loading animation
+  Animated.parallel([
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }),
+    Animated.timing(scaleAnim, {
+      toValue: 0.95,
+      duration: 300,
+      useNativeDriver: true,
+    }),
+  ]).start();
+
+  try {
+    // ✅ DETAILED DEBUGGING
+    console.log("=== QR GENERATION DEBUG ===");
+    
+    // Check ALL AsyncStorage keys
+    const allKeys = await AsyncStorage.getAllKeys();
+    console.log("All AsyncStorage keys:", allKeys);
+    
+    const stored = await AsyncStorage.getItem("user");
+    const userEmail = await AsyncStorage.getItem("userEmail");
+    const userRole = await AsyncStorage.getItem("userRole");
+    
+    console.log("Raw 'user' data:", stored);
+    console.log("User email:", userEmail);
+    console.log("User role:", userRole);
+    
+    const user = stored ? JSON.parse(stored) : null;
+    
+    console.log("Parsed user object:", user);
+    console.log("User ID type:", typeof user?.id, "Value:", user?.id);
+    console.log("User name:", user?.name);
+    console.log("User email from object:", user?.email);
+    
+    // Check if user is null or missing ID
+    if (!user) {
+      console.error("❌ NO USER DATA FOUND IN STORAGE");
+      Alert.alert("❌ Authentication Error", "No user data found! Please log in again.");
       return;
     }
-
-    setLoading(true);
     
-    // Start loading animation
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 0.95,
-        duration: 300,
-        useNativeDriver: true,
-      }),
+    if (!user.id) {
+      console.error("❌ USER ID IS MISSING");
+      Alert.alert("❌ Authentication Error", "User ID is missing! Please log in again.");
+      return;
+    }
+    
+    console.log("✅ About to send teacherId:", user.id);
+    console.log("===========================");
+
+    const response = await fetch("http://192.168.1.9:5000/api/sessions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        course: classId.trim(),
+        teacherId: user.id,
+        expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString()
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Server error:", errorData);
+      throw new Error(errorData.error || "Failed to create session on server");
+    }
+
+    const sessionData = await response.json();
+    console.log("Session created successfully:", sessionData);
+
+    const qrData = {
+      sessionId: sessionData.session.id,
+      qrCode: sessionData.session.qrCode,
+      classId: sessionData.session.course,
+      teacherId: sessionData.session.facultyId,
+      date: sessionData.session.createdAt,
+      expiresAt: sessionData.session.expiresAt,
+      hash: generateSimpleHash(sessionData.session.id, sessionData.session.qrCode, user.id)
+    };
+
+    setQrValue(JSON.stringify(qrData));
+    setSessionInfo(sessionData.session);
+
+    // Success animation
+    Animated.sequence([
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ]),
     ]).start();
 
-    try {
-      const stored = await AsyncStorage.getItem("user");
-      const user = stored ? JSON.parse(stored) : null;
+    Alert.alert("✨ Success!", "Secure QR Code generated successfully!");
 
-      if (!user) {
-        Alert.alert("❌ Authentication Error", "No teacher logged in! Please log in first.");
-        return;
-      }
-
-      const response = await fetch("http://192.168.1.9:5000/sessions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({
-          course: classId.trim(),
-          facultyId: user.id,
-          expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString()
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create session on server");
-      }
-
-      const sessionData = await response.json();
-
-      const qrData = {
-        sessionId: sessionData.session.id,
-        qrCode: sessionData.session.qrCode,
-        classId: sessionData.session.course,
-        teacherId: sessionData.session.facultyId,
-        date: sessionData.session.createdAt,
-        expiresAt: sessionData.session.expiresAt,
-        hash: generateSimpleHash(sessionData.session.id, sessionData.session.qrCode, user.id)
-      };
-
-      setQrValue(JSON.stringify(qrData));
-      setSessionInfo(sessionData.session);
-
-      // Success animation
-      Animated.sequence([
-        Animated.parallel([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 600,
-            useNativeDriver: true,
-          }),
-          Animated.timing(scaleAnim, {
-            toValue: 1,
-            duration: 600,
-            useNativeDriver: true,
-          }),
-          Animated.timing(slideAnim, {
-            toValue: 0,
-            duration: 600,
-            useNativeDriver: true,
-          }),
-        ]),
-      ]).start();
-
-      Alert.alert("✨ Success!", "Secure QR Code generated successfully!");
-
-    } catch (error) {
-      console.error("Secure QR generation error:", error);
-      Alert.alert("❌ Generation Failed", "Unable to generate QR code. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (error) {
+    console.error("Secure QR generation error:", error);
+    Alert.alert("❌ Generation Failed", "Unable to generate QR code. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const clearQR = () => {
     Animated.timing(fadeAnim, {

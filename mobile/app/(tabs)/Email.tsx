@@ -66,6 +66,14 @@ const handleRegister = async () => {
       return;
     }
 
+    console.log("Registration response:", data);
+
+    // ✅ Save the complete user data if backend returns it
+    if (data.user) {
+      await AsyncStorage.setItem("user", JSON.stringify(data.user));
+      console.log("Saved user data from registration:", data.user);
+    }
+
     // Save email + role locally
     await AsyncStorage.setItem("userEmail", email);
     await AsyncStorage.setItem("userRole", role);

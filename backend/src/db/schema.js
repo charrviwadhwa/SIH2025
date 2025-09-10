@@ -30,7 +30,7 @@ export const sessions = pgTable("sessions", {
   id: serial("id").primaryKey(),
   course: varchar("course", { length: 100 }).notNull(),
   facultyId: integer("faculty_id").notNull().references(() => teachers.id),
-  qrCode: varchar("qr_code", { length: 20 }).notNull(),
+  qrCode: varchar("qr_code", { length: 100 }).notNull(), // ✅ Increased from 20 to 100
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -40,7 +40,7 @@ export const attendance = pgTable("attendance", {
   id: serial("id").primaryKey(),
   sessionId: integer("session_id").notNull().references(() => sessions.id),
   studentId: integer("student_id").notNull().references(() => students.id),
-  qrCode: varchar("qr_code", { length: 20 }).notNull(),
+  qrCode: varchar("qr_code", { length: 100 }).notNull(), // ✅ Increased from 20 to 100
   markedAt: timestamp("marked_at").defaultNow(),
 });
 

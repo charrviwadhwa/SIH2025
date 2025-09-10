@@ -1,35 +1,28 @@
-import React from "react";
-import {
-  StyleSheet,
-  SafeAreaView,
-  View,
-  Text,
-  Image,
-  Platform,
-  Pressable,
-} from "react-native";
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from "@react-navigation/native";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, SafeAreaView, View, Text, Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { colors } from "../../utils/colors";
-import { router } from 'expo-router';
+import Navbar from "../(tabs)/Studentnavbar";
 
 const Profile = () => {
-  const navigation = useNavigation();
+  const [user, setUser] = useState({ name: "User Name", email: "user@example.com" });
 
-  const tabs = [
-    { name: "Profile", icon: "person-circle-outline", route: "Profile" },
-    { name: "Scanner", icon: "scan-outline", route: "QRScanner" },
-    { name: "Attendance", icon: "checkmark-done-outline", route: "Attendance" },
-    { name: "Settings", icon: "settings-outline", route: "Settings" },
-  ];
-
-  // Example Attendance Data
   const subjects = [
     { id: 1, name: "Operating Systems", attended: 18, total: 24 },
     { id: 2, name: "DBMS", attended: 20, total: 28 },
     { id: 3, name: "Computer Networks", attended: 15, total: 20 },
     { id: 4, name: "AI & ML", attended: 10, total: 16 },
   ];
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const storedUser = await AsyncStorage.getItem("user");
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    };
+    fetchUser();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -41,8 +34,8 @@ const Profile = () => {
       {/* Bottom Content */}
       <View style={styles.content}>
         <View style={styles.card}>
-          <Text style={styles.name}>Nandita Jha</Text>
-          <Text style={styles.email}>nandita@gmail.com</Text>
+          <Text style={styles.name}>{user.name}</Text>
+          <Text style={styles.email}>{user.email}</Text>
         </View>
 
         {/* Subject Attendance Cards */}
@@ -54,12 +47,8 @@ const Profile = () => {
           return (
             <View
               key={subj.id}
-              style={[
-                styles.attendanceCard,
-                isLow && { borderLeftColor: "red" },
-              ]}
+              style={[styles.attendanceCard, isLow && { borderLeftColor: "red" }]}
             >
-              {/* Left - Subject Name */}
               <View style={styles.subjectBox}>
                 <Text style={styles.subjectName}>{subj.name}</Text>
                 <Text style={styles.subText}>
@@ -67,14 +56,8 @@ const Profile = () => {
                 </Text>
               </View>
 
-              {/* Right - Attendance % */}
               <View style={styles.percentageBox}>
-                <Text
-                  style={[
-                    styles.percentage,
-                    { color: isLow ? "red" : "green" },
-                  ]}
-                >
+                <Text style={[styles.percentage, { color: isLow ? "red" : "green" }]}>
                   {percentage}%
                 </Text>
               </View>
@@ -84,18 +67,7 @@ const Profile = () => {
       </View>
 
       {/* Footer Navigation */}
-      <View style={styles.bottomNav}>
-        {tabs.map((tab, index) => (
-          <Pressable
-            key={index}
-            style={styles.tabButton}
-            onPress={() => router.push(tab.route)}
-          >
-            <Ionicons name={tab.icon} size={28} color={colors.primary} />
-            <Text style={styles.tabLabel}>{tab.name}</Text>
-          </Pressable>
-        ))}
-      </View>
+      <Navbar />
     </SafeAreaView>
   );
 };
@@ -149,19 +121,4 @@ const styles = StyleSheet.create({
   subText: { fontSize: 13, color: "#666", marginTop: 3 },
   percentageBox: { alignItems: "flex-end" },
   percentage: { fontSize: 18, fontWeight: "700" },
-  bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    backgroundColor: colors.white,
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
-    ...Platform.select({
-      ios: { shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 4 },
-      android: { elevation: 4 },
-    }),
-  },
-  tabButton: { alignItems: "center" },
-  tabLabel: { fontSize: 12, marginTop: 2, color: colors.primary },
 });

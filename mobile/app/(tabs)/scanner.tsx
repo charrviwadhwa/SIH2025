@@ -277,7 +277,7 @@ export default function BeautifulScannerScreen() {
             <Animated.View style={[styles.header, { opacity: fadeAnim }]}>
             <TouchableOpacity 
         style={styles.backButton}
-        onPress={() => router.push("/home")}
+        onPress={() => router.push("/(tabs)/myAttendance")}
       >
         <BlurView intensity={20} tint="dark" style={styles.backButtonBlur}>
           <Ionicons name="arrow-back" size={24} color="white" />

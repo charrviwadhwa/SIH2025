@@ -14,7 +14,7 @@ const app = express();
 app.use(express.json());
 
 // Routes
-app.use("/sessions", sessionsRouter);
+app.use("/api/sessions", sessionsRouter);
 app.use("/attendance", attendanceRouter);
 app.use("/api/qr", qrRoutes);
 app.use("/auth", authRouter);
